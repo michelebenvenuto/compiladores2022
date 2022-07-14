@@ -8,7 +8,7 @@
 
 ## Testing
 
-Before testing this proyect you need to run the following commands the the directory of the YAPLS2.g4 file
+Before testing this proyect you need to run the following commands in the directory of the YAPLS2.g4 file
 
 ```
 antlr4 YAPL2.g4
