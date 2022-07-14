@@ -8,6 +8,7 @@ from antlr4.tree.Trees import Trees
 
 def main():
     file = sys.argv[1]
+    print(file)
     data = FileStream(file)
     #lexer
     lexer = YAPL2Lexer(data)
@@ -19,7 +20,8 @@ def main():
     print("Tokens:")
     for token in stream.tokens:
         print(" ",token.text, ':', token.type)
-    os.system('grun YAPL2 program arith.cl -gui')
+    comand = 'grun YAPL2 program %s -gui'%file
+    os.system(comand)
         
 
 if __name__ == "__main__":
