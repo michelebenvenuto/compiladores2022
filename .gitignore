@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 #antlr4 java created classes and files
-.class
-.java
+*.class
+*.java
