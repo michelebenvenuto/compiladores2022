@@ -16,12 +16,10 @@ def main():
     #parser
     parser = YAPL2Parser(stream)
     tree = parser.program()
-    print(Trees.toStringTree(tree,None,parser))
-    print("Tokens:")
-    for token in stream.tokens:
-        print(" ",token.text, ':', token.type)
     comand = 'grun YAPL2 program %s -gui'%file
     os.system(comand)
+    visitor = YAPL2Visitor()
+    visitor.visit(tree)
         
 
 if __name__ == "__main__":
