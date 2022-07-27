@@ -9,35 +9,36 @@ programBlock:
 classDEF : 
     CLASS TYPEID (INHERITS TYPEID)? '{' (feature ';')* '}';
 feature : 
-    (OBJECTID) '(' (formal (','formal)*)? ')' ':' TYPEID '{' expr '}'
-    | OBJECTID ':' TYPEID (ASIGNOPP expr)?;
+    (OBJECTID) '(' (formal (','formal)*)? ')' ':' TYPEID '{' expr '}' #MethodDef
+    | OBJECTID ':' TYPEID (ASIGNOPP expr)? #FeactureDecalration
+    ;
 formal:
     OBJECTID ':' TYPEID;
 expr :
-    expr ('@' TYPEID)? '.' OBJECTID '(' (expr (',' expr)*)? ')'
-    | OBJECTID '(' (expr (',' expr)*)? ')'
-    | IF expr THEN expr ELSE expr FI
-    | WHILE expr LOOP expr POOL
-    | '{' (expr ';')* '}'
-    | 'let' OBJECTID ':' TYPEID (ASIGNOPP expr)? (',' OBJECTID ':' TYPEID (ASIGNOPP expr)?)* IN expr
-    | NEW TYPEID
-    | ISVOID expr
-    | expr '*' expr
-    | expr '/' expr
-    | expr '+' expr
-    | expr '-' expr
-    | '~' expr
-    | expr '<' expr
-    | expr '<=' expr
-    | expr '=' expr
-    | NOT expr
-    | '(' expr ')'
-    | OBJECTID
-    | INTEGERS
-    | STRINGS
-    | TRUE
-    | FALSE
-    | OBJECTID ASIGNOPP expr
+    expr ('@' TYPEID)? '.' OBJECTID '(' (expr (',' expr)*)? ')' #MethodExpr 
+    | OBJECTID '(' (expr (',' expr)*)? ')' #FunctionExpr
+    | IF expr THEN expr ELSE expr FI #ifElseExpr
+    | WHILE expr LOOP expr POOL #whileExpr
+    | '{' (expr ';')* '}' #BraketedExpr
+    | 'let' OBJECTID ':' TYPEID (ASIGNOPP expr)? (',' OBJECTID ':' TYPEID (ASIGNOPP expr)?)* IN expr #letExpr
+    | NEW TYPEID #newExpr 
+    | ISVOID expr #isVoidExpr
+    | expr '*' expr #multiplyExpr
+    | expr '/' expr #divideExpr
+    | expr '+' expr #addExpr
+    | expr '-' expr #substractExpr
+    | '~' expr #notExpr
+    | expr '<' expr #lessExpr
+    | expr '<=' expr #lessEqualExpr
+    | expr '=' expr #equalExpr
+    | NOT expr #notExpr
+    | '(' expr ')' #parenthExpr
+    | OBJECTID #objectIdExpr
+    | INTEGERS #integerExpr
+    | STRINGS #stringExpr
+    | TRUE #trueExpr
+    | FALSE #falseExpr
+    | OBJECTID ASIGNOPP expr #DeclarationExpression
     ;
 //Palabras reservadas
 CLASS
