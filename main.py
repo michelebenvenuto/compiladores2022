@@ -22,20 +22,21 @@ def main():
     #Semantic analysis
     visitor = YAPL2Visitor()
     visitor.visit(tree)
-    #Showing tables
-    print("==============================TABLES==============================")
-    print("Attribute table:")
+    # Showing tables
+    print("==============================SYMBOL TABLE==============================")
+    print("==============================ATTRIBUTE TABLE==============================")
     for i in attributeTable.entries:
-        print(" ",i)
-    print("Types table:")
+        print(i)
+    print("==============================TYPES TABLE==============================")
     for i in typesTable.entries:
-        print(" ",i)
-    print("Class table:")
+        print(i)
+    print("==============================CLASS TABLE==============================")
     for i in classTable.entries:
-        print(" ",i)
-    print("Function table:")
+        print(i)
+    print("==============================FUNCTION TABLE==============================")
     for i in functionTable.entries:
-        print(" ",i)
+        print(i)
+    print("==============================END==============================")
 
 if __name__ == "__main__":
     main()

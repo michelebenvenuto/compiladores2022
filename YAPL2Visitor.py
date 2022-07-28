@@ -15,6 +15,9 @@ attributeTable = AttributeTable()
 typesTable = TypesTable()
 classTable = ClassTable()
 functionTable = FunctionTable()
+currentScope = 1 
+currentClass = "Debugg" 
+currentMethod = "Debugg" 
 
 class YAPL2Visitor(ParseTreeVisitor):
 
@@ -30,36 +33,53 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#classDEF.
     def visitClassDEF(self, ctx:YAPL2Parser.ClassDEFContext):
+        global currentClass
+        global currentMethod
+        global currentScope
         className = ctx.TYPEID()[0]
         entry = ClassTableEntry(className)
         classTable.addEntry(entry)
+        currentClass = className
+        currentMethod = None
+        currentScope = 1
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by YAPL2Parser#MethodDef.
     def visitMethodDef(self, ctx:YAPL2Parser.MethodDefContext):
+        global currentMethod
+        global currentScope
+        global currentClass
         functionName = ctx.OBJECTID()
         type = ctx.TYPEID()
-        entry = FunctionTableEntry(functionName, type)
+        entry = FunctionTableEntry(functionName, type,None, currentScope, currentClass)
         functionTable.addEntry(entry)
+        currentMethod = functionName
+        currentScope = 2
         return self.visitChildren(ctx)
 
 
 
     # Visit a parse tree produced by YAPL2Parser#FeactureDecalration.
     def visitFeactureDecalration(self, ctx:YAPL2Parser.FeactureDecalrationContext):
+        global currentMethod
+        global currentScope
+        global currentClass
         featureName = ctx.OBJECTID()
         featureType = ctx.TYPEID()
-        entry = AttributeTableEntry(featureName, featureType)
+        entry = AttributeTableEntry(featureName, featureType, currentScope, currentClass, currentMethod)
         attributeTable.addEntry(entry)
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by YAPL2Parser#formal.
     def visitFormal(self, ctx:YAPL2Parser.FormalContext):
+        global currentMethod
+        global currentClass
+        global currentScope
         featureName = ctx.OBJECTID()
         featureType = ctx.TYPEID()
-        entry = AttributeTableEntry(featureName, featureType)
+        entry = AttributeTableEntry(featureName, featureType, currentScope, currentClass, currentMethod)
         attributeTable.addEntry(entry)
         return self.visitChildren(ctx)
 
