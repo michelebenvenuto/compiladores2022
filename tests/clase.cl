@@ -1,11 +1,14 @@
 class Main {
     a : Int <- 1;
     b : Int <- 2;
-    c : Int <- 3; 
+    c : Int;
 
     main() : SELF_TYPE {
         {
-            a <- a + b *c;
+            c <- a + d ;
+            c <- a - d ;
+            c <- a * d ;
+            c <- a / d ;
             self;
         }
     } ;

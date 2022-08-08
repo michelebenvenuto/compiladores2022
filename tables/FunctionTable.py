@@ -3,30 +3,30 @@ class FunctionTable:
         self.entries = []
 
     def addEntry(self, FunctionTableEntry):
-        if self.findEntry(FunctionTableEntry.name, FunctionTableEntry.params, FunctionTableEntry.scope, FunctionTableEntry.type, FunctionTableEntry.belongsTo) is None:
+        if self.findEntryByName(FunctionTableEntry.name, FunctionTableEntry.belongsTo) is None:
             self.entries.append(FunctionTableEntry)
         else:
             print("Function {0} already exists".format(FunctionTableEntry.name))
             return False
 
-    def findEntry(self, name, params, scope, type, belongsTo):
+    def findEntryByName(self, name, belongsTo):
         for entry in self.entries:
-            if entry.name == name and entry.params == params and entry.scope == scope and entry.type == type and entry.belongsTo == belongsTo:
+            if entry.name == name and entry.belongsTo == belongsTo:
+                return entry                
+        return None
+    def findEntryByID(self, id):
+        for entry in self.entries:
+            if entry.id == id:
                 return entry
-            else:
-                return None
+        return None
 
 class FunctionTableEntry:
-    def __init__(self,name, type, params= None, scope = None,  belongsTo = None):
+    def __init__(self,id ,name, type, scope = None,  belongsTo = None):
+        self.id = id
         self.name = name
-        self.params = params
         self.scope = scope
         self.type = type
         self.belongsTo = belongsTo
     def __str__(self):
-        return '{0} {1} {2} {3} {4}'.format(self.name, self.type, self.params, self.scope, self.belongsTo)
+        return '{0} {1} {2} {3} {4}'.format(self.id,self.name, self.type, self.scope, self.belongsTo)
 
-class FunctionParams:
-    def __init__(self, type, name):
-        self.type = type
-        self.name = name
