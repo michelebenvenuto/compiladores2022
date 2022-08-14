@@ -3,22 +3,23 @@ import os
 from antlr4 import *
 from YAPL2Lexer import YAPL2Lexer
 from YAPL2Parser import YAPL2Parser
-from YAPL2Visitor import YAPL2Visitor, attributeTable, typesTable, classTable, functionTable, foundErrors
+from YAPL2Visitor import YAPL2Visitor
 from antlr4.tree.Trees import Trees
 
-def tablePrint():
+
+def tablePrint(visitor):
     print("==============================SYMBOL TABLE==============================")
     print("==============================ATTRIBUTE TABLE==============================")
-    for i in attributeTable.entries:
+    for i in visitor.attributeTable.entries:
         print(i)
     print("==============================TYPES TABLE==============================")
-    for i in typesTable.entries:
+    for i in visitor.typesTable.entries:
         print(i)
     print("==============================CLASS TABLE==============================")
-    for i in classTable.entries:
+    for i in visitor.classTable.entries:
         print(i)
     print("==============================FUNCTION TABLE==============================")
-    for i in functionTable.entries:
+    for i in visitor.functionTable.entries:
         print(i)
     print("==============================END==============================")
 
@@ -38,8 +39,8 @@ def main():
     result = visitor.visit(tree)
     # Showing tables
 
-    print(len(foundErrors))
-    for i in foundErrors:
+    print(len(visitor.foundErrors))
+    for i in visitor.foundErrors:
         print(i)
 if __name__ == "__main__":
     main()

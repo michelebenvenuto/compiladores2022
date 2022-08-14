@@ -27,7 +27,7 @@ expr :
     | expr '/' expr #divideExpr
     | expr '+' expr #addExpr
     | expr '-' expr #substractExpr
-    | '~' expr #notExpr
+    | '~' expr #neggateExpr
     | expr '<' expr #lessExpr
     | expr '<=' expr #lessEqualExpr
     | expr '=' expr #equalExpr
