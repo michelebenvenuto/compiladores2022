@@ -1,6 +1,6 @@
 class TypesTable:
     def __init__(self):
-        self.entries = ["Int", "Bool", "String", "Void"]
+        self.entries = ["Int", "Bool", "String", "Void", "Object"]
     
     def addEntry(self, type):
         self.entries.append(type)

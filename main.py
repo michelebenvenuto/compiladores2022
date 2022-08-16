@@ -42,6 +42,8 @@ def main():
     print(len(visitor.foundErrors))
     for i in visitor.foundErrors:
         print(i)
+    
+    #tablePrint(visitor)
 if __name__ == "__main__":
     main()
-    #tablePrint()
+    

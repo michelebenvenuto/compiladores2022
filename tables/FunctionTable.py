@@ -14,6 +14,7 @@ class FunctionTable:
             if entry.name == name and entry.belongsTo == belongsTo:
                 return entry                
         return None
+        
     def findEntryByID(self, id):
         for entry in self.entries:
             if entry.id == id:

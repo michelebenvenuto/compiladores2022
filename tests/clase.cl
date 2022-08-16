@@ -1,3 +1,38 @@
+class A {
+    a: Int;
+
+    set_var(num : Int) : SELF_TYPE {
+      {
+         a <- num;
+         self;
+      }
+    };
+};
+
+class B inherits A {
+    b: Int;
+};
+
+class C inherits B {
+    c: Int;
+};
+
+class D {
+    d: Int;
+
+    set_var(num : Int) : SELF_TYPE {
+      {
+         d <- num;
+         self;
+      }
+    };
+    get_d() : Int {
+      {
+         d;
+      }
+    };
+};
+
 class Main {
     a : Int <- 1;
     b : Int <- 2;
@@ -6,7 +41,7 @@ class Main {
 
     main() : SELF_TYPE {
         {
-            a <= b;
+            c <- (new D).get_d();
             self;
         }
     } ;

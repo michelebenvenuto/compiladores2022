@@ -41,6 +41,10 @@ class YAPL2Visitor(ParseTreeVisitor):
         className = str(ctx.TYPEID()[0])
         if len(ctx.TYPEID()) > 1:
             parentClass = str(ctx.TYPEID()[1])
+            if not self.classTable.findEntry(parentClass):
+                error = semanticError(ctx.start.line, "Class " + parentClass + " not defined")
+                self.foundErrors.append(error)
+                return "Error"
         else:
             parentClass = None
         entry = ClassTableEntry(className, parentClass)
@@ -60,9 +64,15 @@ class YAPL2Visitor(ParseTreeVisitor):
         self.functionTable.addEntry(entry)
         self.currentMethod = functionName
         self.currentScope = 2
-        return self.visitChildren(ctx)
-
-
+        for node in ctx.formal():
+            self.visit(node)
+        childrenResult = self.visit(ctx.expr())
+        if childrenResult == type:
+            return type
+        else:
+            error = semanticError(ctx.start.line, "Function " + functionName + " returns " + childrenResult + " instead of " + type)
+            self.foundErrors.append(error)
+            return "Error"
 
     # Visit a parse tree produced by YAPL2Parser#FeactureDecalration.
     def visitFeactureDecalration(self, ctx:YAPL2Parser.FeactureDecalrationContext):
@@ -81,14 +91,23 @@ class YAPL2Visitor(ParseTreeVisitor):
     def visitFormal(self, ctx:YAPL2Parser.FormalContext):
         featureName = str(ctx.OBJECTID())
         featureType = str(ctx.TYPEID())
-        entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId)
+        entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId, True)
         self.attributeTable.addEntry(entry)
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by YAPL2Parser#newExpr.
     def visitNewExpr(self, ctx:YAPL2Parser.NewExprContext):
-        return self.visitChildren(ctx)
+        classType = str(ctx.TYPEID())
+        if self.classTable.findEntry(classType):
+            return classType
+        else:
+            if self.typesTable.findEntry(classType):
+                return classType
+            else:
+                error = semanticError(ctx.start.line, "Class " + classType + " not defined")
+                self.foundErrors.append(error)
+                return "Error"
 
 
     # Visit a parse tree produced by YAPL2Parser#divideExpr.
@@ -123,8 +142,70 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#MethodExpr.
     def visitMethodExpr(self, ctx:YAPL2Parser.MethodExprContext):
-        return self.visitChildren(ctx)
+        childrenResults = []
+        for node in ctx.expr():
+            childresult = self.visit(node)
+            childrenResults.append(childresult)
+        mainClass = childrenResults[0]
+        #Check if we are using a method from a parent class
+        if ctx.TYPEID():
+            parentClass = str(ctx.TYPEID())
+            #Check if the parent class is defined
+            if not self.classTable.findEntry(parentClass):
+                error = semanticError(ctx.start.line, "Class " + parentClass + " not defined")
+                self.foundErrors.append(error)
+                return "Error"
+            currentClass = self.classTable.findEntry(mainClass)
+            if currentClass.inherits != parentClass:
+                dad = self.classTable.findEntry(currentClass.inherits)
+                family = []
+                while dad:
+                    family.append(dad.name)
+                    dad = self.classTable.findEntry(dad.inherits)         
+                if parentClass not in family:
+                    error = semanticError(ctx.start.line, "Class " + mainClass + " can't acces methods from class " + parentClass)
+                    self.foundErrors.append(error)
+                    return "Error"
 
+            # Check if the method is defined in the parent class
+            methodEntry =  self.functionTable.findEntryByName(str(ctx.OBJECTID()), parentClass)
+            if methodEntry:
+                params = childrenResults[1:]
+                savedParams = self.attributeTable.findParamsOfFunction(methodEntry.id)
+                if len(params) != len(savedParams):
+                    error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(params)) + " were given")
+                    self.foundErrors.append(error)
+                    return "Error"
+                for i in range(len(params)):
+                    if params[i] != savedParams[i].type:
+                        error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + savedParams[i].type + " as parameter " + str(i+1) + " but " + params[i] + " was given")
+                        self.foundErrors.append(error)
+                        return "Error"
+                return methodEntry.type
+            else:
+                error = semanticError(ctx.start.line, "Method " + str(ctx.OBJECTID()) + " not defined in " + parentClass)
+                self.foundErrors.append(error)
+                return "Error"
+        else:
+            # Check if the method is defined in the current class
+            methodEntry = self.functionTable.findEntryByName(str(ctx.OBJECTID()), mainClass)
+            if methodEntry:
+                params = childrenResults[1:]
+                savedParams = self.attributeTable.findParamsOfFunction(methodEntry.name)
+                if len(params) != len(savedParams):
+                    error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(params)) + " were given")
+                    self.foundErrors.append(error)
+                    return "Error"
+                for i in range(len(params)):
+                    if params[i] != savedParams[i].type:
+                        error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + savedParams[i].type + " as parameter " + str(i+1) + " but " + params[i] + " was given")
+                        self.foundErrors.append(error)
+                        return "Error"
+                return methodEntry.type
+            else:
+                error = semanticError(ctx.start.line, "Method " + str(ctx.OBJECTID()) + " not defined in " + mainClass)
+                self.foundErrors.append(error)
+                return "Error"
 
     # Visit a parse tree produced by YAPL2Parser#DeclarationExpression.
     def visitDeclarationExpression(self, ctx:YAPL2Parser.DeclarationExpressionContext):
@@ -146,11 +227,19 @@ class YAPL2Visitor(ParseTreeVisitor):
             self.foundErrors.append(error)
             return "Error"
         
-
     # Visit a parse tree produced by YAPL2Parser#ifElseExpr.
     def visitIfElseExpr(self, ctx:YAPL2Parser.IfElseExprContext):
-        return self.visitChildren(ctx)
-
+        childrenResults = []
+        for node in ctx.expr():
+            childrenResults.append(self.visit(node))
+        print(childrenResults)
+        #TODO Ask about the type of the condition
+        if childrenResults[0] == "Bool":
+            return "Object"
+        else:
+            error = semanticError(ctx.start.line, "If conditional must be boolean not " + childrenResults[0])
+            self.foundErrors.append(error)
+            return "Error"
 
     # Visit a parse tree produced by YAPL2Parser#lessExpr.
     def visitLessExpr(self, ctx:YAPL2Parser.LessExprContext):
@@ -167,7 +256,11 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#BraketedExpr.
     def visitBraketedExpr(self, ctx:YAPL2Parser.BraketedExprContext):
-        return self.visitChildren(ctx)
+        childrenResults = []
+        for node in ctx.expr():
+            childrenResults.append(self.visit(node))
+        
+        return childrenResults[-1]
 
 
     # Visit a parse tree produced by YAPL2Parser#multiplyExpr.
@@ -221,8 +314,15 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#whileExpr.
     def visitWhileExpr(self, ctx:YAPL2Parser.WhileExprContext):
-        return self.visitChildren(ctx)
-
+        childrenResult = []
+        for node in ctx.expr():
+            childrenResult.append(self.visit(node))
+        if childrenResult[0] == "Bool":
+            return "Object"
+        else:
+            error = semanticError(ctx.start.line, "Cannot use " + childrenResult[0] + " as condition")
+            self.foundErrors.append(error)
+            return "Error"
 
     # Visit a parse tree produced by YAPL2Parser#addExpr.
     def visitAddExpr(self, ctx:YAPL2Parser.AddExprContext):
@@ -283,7 +383,8 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#parenthExpr.
     def visitParenthExpr(self, ctx:YAPL2Parser.ParenthExprContext):
-        return self.visitChildren(ctx)
+        result = self.visit(ctx.expr())
+        return result
 
 
     # Visit a parse tree produced by YAPL2Parser#equalExpr.
