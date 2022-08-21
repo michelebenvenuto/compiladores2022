@@ -23,7 +23,7 @@ class YAPL2Visitor(ParseTreeVisitor):
         self.currentMethod = None
         self.currentScope = 1
         self.currentClass = "Debugg"
-        self.currentMethodId = 0
+        self.currentMethodId = 10
         self.foundErrors = []
 
     # Visit a parse tree produced by YAPL2Parser#program.
@@ -47,7 +47,10 @@ class YAPL2Visitor(ParseTreeVisitor):
                 return "Error"
         else:
             parentClass = None
-        entry = ClassTableEntry(className, parentClass)
+        if parentClass:
+            entry = ClassTableEntry(className, parentClass)
+        else:
+            entry = ClassTableEntry(className)
         self.classTable.addEntry(entry)
         self.currentClass = className
         self.currentMethod = None
@@ -127,7 +130,57 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#FunctionExpr.
     def visitFunctionExpr(self, ctx:YAPL2Parser.FunctionExprContext):
-        return self.visitChildren(ctx)
+        childrenResults = []
+        for node in ctx.expr():
+            childresult = self.visit(node)
+            childrenResults.append(childresult)
+        #Check if the function is defined
+        methodEntry = self.functionTable.findEntryByName(str(ctx.OBJECTID()), self.currentClass)
+        if methodEntry:
+            #Check if the number of arguments is correct
+            savedParams = self.attributeTable.findParamsOfFunction(methodEntry.id)
+            if len(childrenResults) != len(savedParams):
+                error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(savedParams)) + " were given")
+                self.foundErrors.append(error)
+                return "Error"
+            #Check if the types of the arguments are correct
+            for i in range(len(childrenResults)):
+                if childrenResults[i] != savedParams[i].type:
+                    error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + savedParams[i].type + " as parameter " + str(i+1) + " but " + childrenResults[i] + " was given")
+                    self.foundErrors.append(error)
+                    return "Error"
+            return methodEntry.type
+        #Else check if the function belongs to a parent class
+        else:
+            usingClass = self.classTable.findEntry(self.currentClass)
+            if usingClass:
+                parrentClass = usingClass.inherits
+                if parrentClass:
+                    methodEntry = self.functionTable.findEntryByName(str(ctx.OBJECTID()), parrentClass)
+                    if methodEntry:
+                        #Check if the number of arguments is correct
+                        savedParams = self.attributeTable.findParamsOfFunction(methodEntry.id)
+                        if len(childrenResults) != len(savedParams):
+                            error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(savedParams)) + " were given")
+                            self.foundErrors.append(error)
+                            return "Error"
+                        #Check if the types of the arguments are correct
+                        for i in range(len(childrenResults)):
+                            if childrenResults[i] != savedParams[i].type:
+                                error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + savedParams[i].type + " as parameter " + str(i+1) + " but " + childrenResults[i] + " was given")
+                                self.foundErrors.append(error)
+                                return "Error"
+                        return methodEntry.type
+                    else:
+                        error = semanticError(ctx.start.line, "Function " + str(ctx.OBJECTID()) + " not defined")
+                        self.foundErrors.append(error)
+                        return "Error"
+                else:
+                    error = semanticError(ctx.start.line, "Function " + str(ctx.OBJECTID()) + " not defined")
+                    self.foundErrors.append(error)
+                    return "Error"
+            else:
+                return "Error"
 
 
     # Visit a parse tree produced by YAPL2Parser#integerExpr.
@@ -171,7 +224,9 @@ class YAPL2Visitor(ParseTreeVisitor):
             methodEntry =  self.functionTable.findEntryByName(str(ctx.OBJECTID()), parentClass)
             if methodEntry:
                 params = childrenResults[1:]
+                print(methodEntry.id)
                 savedParams = self.attributeTable.findParamsOfFunction(methodEntry.id)
+                print(savedParams)
                 if len(params) != len(savedParams):
                     error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(params)) + " were given")
                     self.foundErrors.append(error)
@@ -191,7 +246,9 @@ class YAPL2Visitor(ParseTreeVisitor):
             methodEntry = self.functionTable.findEntryByName(str(ctx.OBJECTID()), mainClass)
             if methodEntry:
                 params = childrenResults[1:]
-                savedParams = self.attributeTable.findParamsOfFunction(methodEntry.name)
+                print(methodEntry.id)
+                savedParams = self.attributeTable.findParamsOfFunction(methodEntry.id)
+                print(savedParams)
                 if len(params) != len(savedParams):
                     error = semanticError(ctx.start.line, "Function " + methodEntry.name + " expects " + str(len(savedParams)) + " parameters but " + str(len(params)) + " were given")
                     self.foundErrors.append(error)
@@ -211,10 +268,10 @@ class YAPL2Visitor(ParseTreeVisitor):
     def visitDeclarationExpression(self, ctx:YAPL2Parser.DeclarationExpressionContext):
         leftside = str(ctx.OBJECTID())
         #search for leftside in attribute table
-        leftsideEntry = self.attributeTable.findEntry(leftside, self.currentClass, self.currentMethodId)
+        leftsideEntry = self.attributeTable.findEntry(leftside, self.currentClass, self.currentMethodId,self.currentScope)
         #if not found, search without methdod
         if leftsideEntry is None:
-            leftsideEntry = self.attributeTable.findEntry(leftside, self.currentClass, None)
+            leftsideEntry = self.attributeTable.findEntry(leftside, self.currentClass, None,self.currentScope - 1)
         if leftsideEntry is None:
             error = semanticError(ctx.start.line, "Variable " + leftside + " not defined")
             self.foundErrors.append(error)
@@ -232,7 +289,6 @@ class YAPL2Visitor(ParseTreeVisitor):
         childrenResults = []
         for node in ctx.expr():
             childrenResults.append(self.visit(node))
-        print(childrenResults)
         #TODO Ask about the type of the condition
         if childrenResults[0] == "Bool":
             return "Object"
@@ -280,7 +336,24 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#letExpr.
     def visitLetExpr(self, ctx:YAPL2Parser.LetExprContext):
-        return self.visitChildren(ctx)
+        self.currentScope = 3
+        firstVisits = ctx.expr()[0:-1]
+        firstVisitsResults = []
+        for node in firstVisits:
+            firstVisitsResults.append(self.visit(node))
+        for i in range(len(ctx.OBJECTID())):
+            newVarName = str(ctx.OBJECTID()[i])
+            newVarType = str(ctx.TYPEID()[i])
+            newVarEntry = AttributeTableEntry(newVarName, newVarType, self.currentScope, self.currentClass, self.currentMethodId)
+            self.attributeTable.addEntry(newVarEntry)
+            if i < len(firstVisitsResults):
+                if firstVisitsResults[i] != newVarType:
+                    error = semanticError(ctx.start.line, "Can't assign " + firstVisitsResults[i] + " to " + newVarType)
+                    self.foundErrors.append(error)
+                    return "Error"
+        lastExpresionResult = self.visit(ctx.expr()[-1])
+        return lastExpresionResult
+
 
 
     # Visit a parse tree produced by YAPL2Parser#stringExpr.
@@ -340,7 +413,8 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#isVoidExpr.
     def visitIsVoidExpr(self, ctx:YAPL2Parser.IsVoidExprContext):
-        return self.visitChildren(ctx)
+        result = self.visit(ctx.expr())
+        return "Bool"
 
 
     # Visit a parse tree produced by YAPL2Parser#objectIdExpr.
@@ -350,16 +424,27 @@ class YAPL2Visitor(ParseTreeVisitor):
             return "SELF_TYPE"
         #search for varName in attribute table
         else:
-            varEntry = self.attributeTable.findEntry(varName, self.currentClass, self.currentMethodId)  
-            if varEntry is None:
-                varEntry = self.attributeTable.findEntry(varName, self.currentClass, None)
-            if varEntry is None:
-                error = semanticError(ctx.start.line, "Variable " + varName + " not defined")
-                self.foundErrors.append(error)
-                return "Error"
+            varEntry = self.attributeTable.findEntry(varName, self.currentClass, self.currentMethodId,self.currentScope)  
+            if self.currentScope == 3:
+                if varEntry is None:
+                    varEntry = self.attributeTable.findEntry(varName, self.currentClass, self.currentMethodId,self.currentScope-1)
+                if varEntry is None and self.currentScope > 1:
+                    varEntry = self.attributeTable.findEntry(varName, self.currentClass, None,self.currentScope-2)    
+                if varEntry is None:
+                    error = semanticError(ctx.start.line, "Variable " + varName + " not defined")
+                    self.foundErrors.append(error)
+                    return "Error"
+                else:
+                    return varEntry.type
             else:
-                return varEntry.type
-
+                if varEntry is None:
+                    varEntry = self.attributeTable.findEntry(varName, self.currentClass, None, self.currentScope -1)
+                if varEntry is None:
+                    error = semanticError(ctx.start.line, "Variable " + varName + " not defined")
+                    self.foundErrors.append(error)
+                    return "Error"
+                else:
+                    return varEntry.type
 
     # Visit a parse tree produced by YAPL2Parser#substractExpr.
     def visitSubstractExpr(self, ctx:YAPL2Parser.SubstractExprContext):
