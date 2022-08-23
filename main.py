@@ -49,7 +49,6 @@ def gui():
 def loadFile(userInputWindow):
     userInputWindow.delete("1.0", tk.END)
     filename = fd.askopenfilename(initialdir = os.getcwd(), title = "Select file")
-    print(filename)
     with open(filename, 'r') as f:
         lines = f.read()
         userInputWindow.insert(tk.END, lines)
@@ -74,7 +73,7 @@ def main(program, errorsWindow):
     result = visitor.visit(tree)
     # Showing tables
     
-    tablePrint(visitor)
+    #tablePrint(visitor)
     
     if not visitor.classTable.findEntry("Main"):
         error = semanticError(1, "Class Main not defined")

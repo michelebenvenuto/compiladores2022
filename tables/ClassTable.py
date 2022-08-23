@@ -8,7 +8,7 @@ class ClassTableEntry:
 class ClassTable:
     def __init__(self, Entry = None):
         self.entries = []
-        IOEntry = ClassTableEntry("IO", None)
+        IOEntry = ClassTableEntry("IO", "Object")
         ObjectEntry = ClassTableEntry("Object", None)
         IntEntry = ClassTableEntry("Int", "Object")
         StringEntry = ClassTableEntry("String", "Object")

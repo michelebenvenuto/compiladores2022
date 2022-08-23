@@ -41,7 +41,6 @@ class AttributeTable:
     
     def findParamsOfFunction(self, functionId):
         results = []
-        print(functionId)
         for entry in self.entries:
             if entry.inMethod == functionId:
                 if entry.isParam:
