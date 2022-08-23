@@ -14,12 +14,12 @@ from errors import semanticError
 
 class YAPL2Visitor(ParseTreeVisitor):
     
-    def __init__(self):
+    def __init__(self, classTable, functionTable, attributeTable, typesTable, foundErrors):
         super().__init__()
-        self.functionTable = FunctionTable()
-        self.attributeTable = AttributeTable()
-        self.typesTable = TypesTable()
-        self.classTable = ClassTable()
+        self.functionTable = functionTable
+        self.attributeTable = attributeTable
+        self.typesTable = typesTable
+        self.classTable = classTable
         self.currentMethod = None
         self.currentScope = 1
         self.currentClass = "Debugg"
@@ -47,11 +47,11 @@ class YAPL2Visitor(ParseTreeVisitor):
                 return "Error"
         else:
             parentClass = None
-        if parentClass:
-            entry = ClassTableEntry(className, parentClass)
-        else:
-            entry = ClassTableEntry(className)
-        self.classTable.addEntry(entry)
+        # if parentClass:
+        #     entry = ClassTableEntry(className, parentClass)
+        # else:
+        #     entry = ClassTableEntry(className)
+        # self.classTable.addEntry(entry)
         self.currentClass = className
         self.currentMethod = None
         self.currentScope = 1
@@ -63,8 +63,11 @@ class YAPL2Visitor(ParseTreeVisitor):
         self.currentMethodId += 1
         functionName = str(ctx.OBJECTID())
         type = str(ctx.TYPEID())
-        entry = FunctionTableEntry(self.currentMethodId,functionName, type, self.currentScope, self.currentClass)
-        self.functionTable.addEntry(entry)
+        if type == "SELF_TYPE":
+            print("SELF_TYPE")
+            type = self.currentClass
+        # entry = FunctionTableEntry(self.currentMethodId,functionName, type, self.currentScope, self.currentClass)
+        # self.functionTable.addEntry(entry)
         self.currentMethod = functionName
         self.currentScope = 2
         for node in ctx.formal():
@@ -79,23 +82,23 @@ class YAPL2Visitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by YAPL2Parser#FeactureDecalration.
     def visitFeactureDecalration(self, ctx:YAPL2Parser.FeactureDecalrationContext):
-        featureName = str(ctx.OBJECTID())
-        featureType = str(ctx.TYPEID())
-        if self.currentMethod:
-            entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId)
-        else:
-            entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, None)
-        self.attributeTable.addEntry(entry)
+        # featureName = str(ctx.OBJECTID())
+        # featureType = str(ctx.TYPEID())
+        # if self.currentMethod:
+        #     entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId)
+        # else:
+        #     entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, None)
+        # self.attributeTable.addEntry(entry)
         
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by YAPL2Parser#formal.
     def visitFormal(self, ctx:YAPL2Parser.FormalContext):
-        featureName = str(ctx.OBJECTID())
-        featureType = str(ctx.TYPEID())
-        entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId, True)
-        self.attributeTable.addEntry(entry)
+        # featureName = str(ctx.OBJECTID())
+        # featureType = str(ctx.TYPEID())
+        # entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId, True)
+        # self.attributeTable.addEntry(entry)
         return self.visitChildren(ctx)
 
 
@@ -291,6 +294,8 @@ class YAPL2Visitor(ParseTreeVisitor):
             childrenResults.append(self.visit(node))
         #TODO Ask about the type of the condition
         if childrenResults[0] == "Bool":
+            if childrenResults[1] == childrenResults[2]:
+                return childrenResults[1]
             return "Object"
         else:
             error = semanticError(ctx.start.line, "If conditional must be boolean not " + childrenResults[0])
@@ -344,8 +349,8 @@ class YAPL2Visitor(ParseTreeVisitor):
         for i in range(len(ctx.OBJECTID())):
             newVarName = str(ctx.OBJECTID()[i])
             newVarType = str(ctx.TYPEID()[i])
-            newVarEntry = AttributeTableEntry(newVarName, newVarType, self.currentScope, self.currentClass, self.currentMethodId)
-            self.attributeTable.addEntry(newVarEntry)
+            # newVarEntry = AttributeTableEntry(newVarName, newVarType, self.currentScope, self.currentClass, self.currentMethodId)
+            # self.attributeTable.addEntry(newVarEntry)
             if i < len(firstVisitsResults):
                 if firstVisitsResults[i] != newVarType:
                     error = semanticError(ctx.start.line, "Can't assign " + firstVisitsResults[i] + " to " + newVarType)
@@ -378,8 +383,8 @@ class YAPL2Visitor(ParseTreeVisitor):
     # Visit a parse tree produced by YAPL2Parser#notExpr.
     def visitNotExpr(self, ctx:YAPL2Parser.NotExprContext):
         childrenResult = self.visit(ctx.expr())
-        if childrenResult == "Bool":
-            return "Bool"
+        if childrenResult == "Bool" or childrenResult == "Int":
+            return childrenResult
         else:
             error = semanticError(ctx.start.line, "Cannot use NOT operator on  " + childrenResult)
             self.foundErrors.append(error)
@@ -421,7 +426,7 @@ class YAPL2Visitor(ParseTreeVisitor):
     def visitObjectIdExpr(self, ctx:YAPL2Parser.ObjectIdExprContext):
         varName = str(ctx.OBJECTID())
         if varName == "self":
-            return "SELF_TYPE"
+            return self.currentClass
         #search for varName in attribute table
         else:
             varEntry = self.attributeTable.findEntry(varName, self.currentClass, self.currentMethodId,self.currentScope)  

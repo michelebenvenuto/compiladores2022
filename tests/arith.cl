@@ -18,7 +18,7 @@ class A {
       (let x : Int in
 	 {
             x <- num1 + num2;
-	    (new B).set_var(x);
+	    (new B)@A.set_var(x);
 	 }
       )
    };
@@ -27,7 +27,7 @@ class A {
       (let x : Int in
 	 {
             x <- ~num;
-	    (new C).set_var(x);
+	    (new C)@A.set_var(x);
 	 }
       )
    };
@@ -37,14 +37,14 @@ class A {
                (let x : Int in
 		  {
                      x <- num1 - num2;
-	             (new D).set_var(x);
+	             (new D)@A.set_var(x);
 	          }
                )
             else
                (let x : Int in
 		  {
 	             x <- num2 - num1;
-	             (new D).set_var(x);
+	             (new D)@A.set_var(x);
 		  }
                )
             fi
@@ -61,7 +61,7 @@ class A {
 	          }
 	       pool
 	    );
-	    (new E).set_var(x);
+	    (new E)@A.set_var(x);
 	 }
       )
    };
@@ -74,7 +74,7 @@ class B inherits A {  -- B is a number squared
       (let x : Int in
 	 {
             x <- num * num;
-	    (new E).set_var(x);
+	    (new E)@A.set_var(x);
 	 }
       )
    };
@@ -96,7 +96,7 @@ class C inherits B {
       (let x : Int in
 	 {
             x <- num * num * num;
-	    (new E).set_var(x);
+	    (new E)@A.set_var(x);
 	 }
       )
    };
@@ -164,7 +164,7 @@ class Main inherits IO {
 	     fi;
 	     
          a_var <- (new A).set_var(3);
-	     avar <- (new B).method2(avar.value(), a_var.value());
+	     avar <- (new B)@A.method2(avar.value(), a_var.value());
          out_int(avar.value());
          out_string("\n");
          
@@ -174,7 +174,7 @@ class Main inherits IO {
          out_string("\n");
         
          a_var <- (new A).set_var(5);
-         avar <- (new D).method4(avar.value(), a_var.value());
+         avar <- (new D)@A.method4(avar.value(), a_var.value());
          out_int(avar.value());
          out_string("\n");
         

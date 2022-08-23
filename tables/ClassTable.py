@@ -12,10 +12,12 @@ class ClassTable:
         ObjectEntry = ClassTableEntry("Object", None)
         IntEntry = ClassTableEntry("Int", "Object")
         StringEntry = ClassTableEntry("String", "Object")
+        BoolEntry = ClassTableEntry("Bool", "Object")
         self.entries.append(IOEntry)
         self.entries.append(ObjectEntry)
         self.entries.append(IntEntry)
         self.entries.append(StringEntry)
+        self.entries.append(BoolEntry)
         if Entry:
             self.entries.append(Entry)
 

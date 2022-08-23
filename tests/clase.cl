@@ -41,7 +41,7 @@ class Main {
 
     main() : SELF_TYPE {
         {
-            (new D).set_var(a);
+            (new D).set_var(d);
             self;
         }
     } ;
