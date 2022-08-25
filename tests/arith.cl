@@ -41,9 +41,9 @@ class A {
 	          }
                )
             else
-               (let x : Int in
+               (let x1 : Int in
 		  {
-	             x <- num2 - num1;
+	             x1 <- num2 - num1;
 	             (new D)@A.set_var(x);
 		  }
                )

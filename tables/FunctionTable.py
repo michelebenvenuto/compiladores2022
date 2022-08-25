@@ -38,8 +38,8 @@ class FunctionTable:
     def addEntry(self, FunctionTableEntry):
         if self.findEntryByName(FunctionTableEntry.name, FunctionTableEntry.belongsTo) is None:
             self.entries.append(FunctionTableEntry)
+            return True
         else:
-            print("Function {0} already exists".format(FunctionTableEntry.name))
             return False
 
     def findEntryByName(self, name, belongsTo):
