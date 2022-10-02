@@ -14,19 +14,9 @@ class Results {
     };
 };
 
-
-class Factorial {
-    factorial(n: Int) : Int {
-      	 if n=0 then 0 else
-         if n=1 then 1 else
-        	n*factorial(n-1)
-         fi fi
-    };
-};
-
-class Div inherits Factorial {
+class Div inherits {
     div(n: Int, o: Int) : Int {
-        n/p
+        n/o
     };
 };
 
@@ -50,18 +40,11 @@ class Main inherits IO {
     a : Results;
     calc: Calculator;
     m : Int;
+    v : Int;
 
     main() : SELF_TYPE {
         {
-            m <- v;
             a.set_res(calc.mul(5,4));
-            out_int(a.get_ress());
-            a.set_res(calc@SumSub.sum(5,6));
-            out_int(a.get_ress());
-            a.set_res(calc@SumSub.sub(5, calc@SumSub.sum(5,6)));
-            out_int(a.get_ress());
-            a.set_res(calc@Factorial.factorial(5));
-            out_int(a.get_ress());
             self;
         }
     } ;

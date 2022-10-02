@@ -1,9 +1,10 @@
 class ClassTableEntry:
-    def __init__(self, name, inherits = "Object"):
+    def __init__(self, name, inherits = "Object", size = 0):
         self.name = name
         self.inherits = inherits
+        self.size = size
     def __str__(self):
-        return '{0} {1}'.format(self.name, self.inherits)
+        return '{0} {1} {2}'.format(self.name, self.inherits, self.size)
 
 class ClassTable:
     def __init__(self, Entry = None):
