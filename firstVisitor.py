@@ -25,7 +25,7 @@ class FirstVisitor(ParseTreeVisitor):
         self.currentClass = "Debugg"
         self.currentMethodId = 10
         self.foundErrors = []
-        self.normalTypes = {"Int": 8, "Bool":1, "String": 8}
+        self.normalTypes = {"Int": 4, "Bool":1, "String": 8}
         self.currOffset = 0
 
     # Visit a parse tree produced by YAPL2Parser#program.

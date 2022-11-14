@@ -8,6 +8,7 @@ from YAPL2Visitor import YAPL2Visitor
 from firstVisitor import FirstVisitor
 from intermediateCodeGenerator import IntermediateCodeGenerator
 from errors import semanticError
+from MipsGenerator import MipsGenerator
 
 import tkinter as tk
 from tkinter import filedialog as fd
@@ -102,7 +103,22 @@ def main(program, errorsWindow, interMediateCodeWindow):
     intCodeGenerator = IntermediateCodeGenerator(visitor.classTable, visitor.functionTable, visitor.attributeTable, visitor.typesTable)
     intermediateCode = intCodeGenerator.visit(tree)
     interMediateCodeWindow.insert(tk.END,str(intermediateCode))
-    
+
+    sizeOfMain = visitor.classTable.findEntry("Main").size
+    codeGenerator = MipsGenerator(intermediateCode.code, sizeOfMain)
+    codeGenerator.generateMipsCode()
+    print("--------------Descriptors----------------")
+    print("-----------Register Descriptor ----------")
+    print(codeGenerator.registerDescriptorStack[-1])
+    print("-----------Variable Descriptor ----------")
+    print(codeGenerator.variableDescriptorStack[-1])
+    print("------------ MIPS Code ------------------")
+    print(codeGenerator)
+    file = open("./tests/mipsCode.s", "w")
+    file.write(str(codeGenerator))
+    file.close
+    print("Mips code generated in file mipsCode.s in tests Folder")
+
 if __name__ == "__main__":
     gui()
     

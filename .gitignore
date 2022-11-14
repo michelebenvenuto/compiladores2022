@@ -131,3 +131,4 @@ dmypy.json
 #antlr4 java created classes and files
 *.class
 *.java
+tests/Mars4_5.jar
