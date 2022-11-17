@@ -105,7 +105,7 @@ def main(program, errorsWindow, interMediateCodeWindow):
     interMediateCodeWindow.insert(tk.END,str(intermediateCode))
 
     sizeOfMain = visitor.classTable.findEntry("Main").size
-    codeGenerator = MipsGenerator(intermediateCode.code, sizeOfMain)
+    codeGenerator = MipsGenerator(intermediateCode.code, sizeOfMain+ 4)
     codeGenerator.generateMipsCode()
     print("--------------Descriptors----------------")
     print("-----------Register Descriptor ----------")
@@ -118,7 +118,7 @@ def main(program, errorsWindow, interMediateCodeWindow):
     file.write(str(codeGenerator))
     file.close
     print("Mips code generated in file mipsCode.s in tests Folder")
-
+    print(codeGenerator.functionSizes)
 if __name__ == "__main__":
     gui()
     

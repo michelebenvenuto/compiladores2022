@@ -25,7 +25,7 @@ class FirstVisitor(ParseTreeVisitor):
         self.currentClass = "Debugg"
         self.currentMethodId = 10
         self.foundErrors = []
-        self.normalTypes = {"Int": 4, "Bool":1, "String": 8}
+        self.normalTypes = {"Int": 4, "Bool":4, "String": 4}
         self.currOffset = 0
 
     # Visit a parse tree produced by YAPL2Parser#program.
@@ -94,7 +94,7 @@ class FirstVisitor(ParseTreeVisitor):
         if featureType in self.normalTypes:
             size = self.normalTypes[featureType]
         else:
-            size = 1
+            size = 4
         if self.currentMethod:
             entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId, size = size, offset= self.currOffset)
             self.currOffset += size
@@ -120,7 +120,7 @@ class FirstVisitor(ParseTreeVisitor):
         if featureType in self.normalTypes:
             size = self.normalTypes[featureType]
         else:
-            size = 1
+            size = 4
         entry = AttributeTableEntry(featureName, featureType, self.currentScope, self.currentClass, self.currentMethodId, True, size= size, offset=self.currOffset)
         self.currOffset +=size
         result  = self.attributeTable.addEntry(entry)
@@ -197,7 +197,7 @@ class FirstVisitor(ParseTreeVisitor):
             if newVarType in self.normalTypes:
                 size1 = self.normalTypes[newVarType]
             else:
-                size1 = 1
+                size1 = 4
             newVarEntry = AttributeTableEntry(newVarName, newVarType, self.currentScope, self.currentClass, self.currentMethodId,size=size1, offset=self.currOffset)
             self.currOffset += size1
             result = self.attributeTable.addEntry(newVarEntry)

@@ -14,7 +14,7 @@ class Results {
     };
 };
 
-class Div inherits {
+class Div {
     div(n: Int, o: Int) : Int {
         n/o
     };
